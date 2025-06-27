@@ -1,0 +1,46 @@
+# Ignore node_modules in all subdirectories
+**/node_modules/
+
+# Logs
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Environment files (API, Chaincode, Front)
+**/.env
+**/.env.*  
+
+# Build output - Next.js (front)
+front/.next/
+front/out/
+
+# Build output - other Node projects (optional if applicable)
+api/dist/
+chaincode/dist/
+
+# Cache
+**/.turbo/
+**/.cache/
+**/.eslintcache/
+
+# Vercel (if using deployment)
+.vercel/
+
+# Local editor files
+*.swp
+*.swo
+.vscode/
+.idea/
+*.code-workspace
+
+# Mac specific
+.AppleDouble
+.LSOverride
+
+# Test coverage
+coverage/

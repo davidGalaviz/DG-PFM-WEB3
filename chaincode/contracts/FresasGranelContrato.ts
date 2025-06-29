@@ -29,11 +29,16 @@ export default class FresasGranelContrato extends Contract {
   @Returns("string")
   public async CosecharFresas(
     ctx: Context,
-    datosCosecha: IDatosCosecha
+    idLoteSemillas: string,
+    toneladas: number,
+    fechaCosecha: string,
+    responsableCosecha: string,
+    condicionesRecoleccion: string,
+    tempDuranteCosecha: number,
   ): Promise<string | null> {
     // Revisamos que no se haya registrado esta cosecha previamente
     const cosechaDuplicada = await ctx.stub.getState(
-      `Granel:${datosCosecha.idLoteSemillas}:${datosCosecha.fechaCosecha}`
+      `Granel:${idLoteSemillas}:${fechaCosecha}`
     );
 
     if (cosechaDuplicada.length > 0) {
@@ -42,34 +47,36 @@ export default class FresasGranelContrato extends Contract {
     }
 
     // Revisamos que el lote especificado sí exista
-    const lote = await ctx.stub.getState(datosCosecha.idLoteSemillas);
+    const lote = await ctx.stub.getState(idLoteSemillas);
 
     if (lote.length === 0) {
       // Si no se encontró el lote, esta no es una operación válida.
       throw new Error(
-        `El Lote de Semillas con ID ${datosCosecha.idLoteSemillas} no existe.`
+        `El Lote de Semillas con ID ${idLoteSemillas} no existe.`
       );
     }
 
-    const asset = new FresasGranel();
     // Tomamos la variedad del ID del Lote.
-    const variedad = datosCosecha.idLoteSemillas.split(":")[2];
+    const variedad = idLoteSemillas.split(":")[2];
 
     // Creamos un asset "Fresas a Granel", con los datos que recibimos
-    asset.idLoteSemillas = datosCosecha.idLoteSemillas;
-    asset.toneladas = datosCosecha.toneladas;
-    asset.variedad = variedad;
-    asset.fechaCosecha = datosCosecha.fechaCosecha;
-    asset.responsableCosecha = datosCosecha.responsableCosecha;
-    asset.condicionesRecoleccion = datosCosecha.condicionesRecoleccion;
-    asset.tempDuranteCosecha = datosCosecha.tempDuranteCosecha;
+    const fresasGranelAsset: FresasGranel = {
+      idLoteSemillas: idLoteSemillas,
+      fechaCosecha: fechaCosecha,
+      variedad: variedad,
+      toneladas: toneladas,
+      responsableCosecha: responsableCosecha,
+      condicionesRecoleccion: condicionesRecoleccion,
+      tempDuranteCosecha: tempDuranteCosecha
+    }
+
 
     await ctx.stub.putState(
-      `Granel:${asset.idLoteSemillas}:${asset.fechaCosecha}`,
-      Buffer.from(JSON.stringify(asset))
+      `Granel:${fresasGranelAsset.idLoteSemillas}:${fresasGranelAsset.fechaCosecha}`,
+      Buffer.from(JSON.stringify(fresasGranelAsset))
     );
 
-    return JSON.stringify(asset);
+    return JSON.stringify(fresasGranelAsset);
   }
 
   @Transaction(false)

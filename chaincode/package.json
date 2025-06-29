@@ -15,6 +15,8 @@
   "dependencies": {
     "ethers": "^6.14.4",
     "fabric-contract-api": "^2.5.8",
-    "fabric-shim": "^2.5.8"
+    "fabric-shim": "^2.5.8",
+    "json-stringify-deterministic": "^1.0.12",
+    "sort-keys-recursive": "^2.1.10"
   }
 }

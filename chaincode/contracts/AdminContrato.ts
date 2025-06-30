@@ -19,11 +19,4 @@ export default class AdminContrato extends Contract {
     public async ConsultarUsuarios(ctx: Context): Promise<string> {
         return '';
     }
-
-    // La siguiente transacción tiene sentido?
-    @Transaction()
-    @Returns('string')
-    public async ActualizarRol(ctx: Context): Promise<string> {
-        return '';
-    }
 }

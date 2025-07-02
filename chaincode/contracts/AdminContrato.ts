@@ -1,6 +1,6 @@
 // File: chaincode/contracts/AdminContrato.ts
 /*
-  Formato Usuario Key: rol:nombre:metamaskAddress
+  Formato Usuario Key: rol/nombre/metamaskAddress
 */
 
 // Importamos las dependencias necesarias de Hyperledger Fabric

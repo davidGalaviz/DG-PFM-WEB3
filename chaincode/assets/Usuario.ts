@@ -1,3 +1,7 @@
+/*
+  Formato Usuario Key: rol/nombre/metamaskAddress
+*/
+
 import { Object, Property } from "fabric-contract-api";
 
 @Object()

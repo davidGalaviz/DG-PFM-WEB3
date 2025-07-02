@@ -1,3 +1,7 @@
+/*
+  Formato LoteSemillas Key: AgricultorMetamaskAddress/lote/variedad/fechaCompra
+*/
+
 import { Object, Property } from "fabric-contract-api";
 
 export interface ICondicionesAlmacenamiento{

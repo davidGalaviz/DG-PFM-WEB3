@@ -1,3 +1,7 @@
+/*
+  Formato LoteSemillas Key: AgricultorMetamaskAddress/lote/variedad/fechaCompra
+*/
+
 import {
   Contract,
   Context,
@@ -27,11 +31,19 @@ export default class LoteSemillasContrato extends Contract {
     }
   }
 
+  private validarNoVacio(nombre: string, valor: string) {
+    if (!valor || valor.trim() === "") {
+      throw new Error(
+        `${nombre} no puede estar vacío ni contener solo espacios.`
+      );
+    }
+  }
+
   // Transacción para almacenar un nuevo lote de semillas
   // Esta transacción crea un nuevo asset LoteSemillas con los parámetros recibidos y lo garda eb el WorldState.
   @Transaction()
   @Returns("string")
-  public async AlmacenarLoteSemillas(
+  public async almacenarLoteSemillas(
     ctx: Context,
     lote: string,
     variedad: string,
@@ -43,29 +55,11 @@ export default class LoteSemillasContrato extends Contract {
     this.verificarAgricultor(ctx);
 
     // Verificar que los parámetros sean validos
-    // Verificamos que los parámetros no sean strings vacias o string con espacios en blanco
-    // Verificamos que las toneladas sean un número positivo mayoar a 0
-    {
-      if (lote.trim() === "") {
-        throw new Error(
-          "El lote no puede ser un string vacío o con espacios en blanco."
-        );
-      }
-      if (variedad.trim() === "") {
-        throw new Error(
-          "La variedad no puede ser un string vacío o con espacios en blanco."
-        );
-      }
-      if (fechaCompra.trim() === "") {
-        throw new Error(
-          "La fecha de compra no puede ser un string vacío o con espacios en blanco."
-        );
-      }
-      if (toneladas <= 0) {
-        throw new Error(
-          "Las toneladas deben ser un número positivo mayor a 0."
-        );
-      }
+    this.validarNoVacio("Lote", lote);
+    this.validarNoVacio("Variedad", variedad);
+    this.validarNoVacio("Fecha de compra", fechaCompra);
+    if (toneladas <= 0) {
+      throw new Error("Las toneladas deben ser un número positivo mayor a 0.");
     }
     // Obtenemos el key del agricultor desde el contexto
     const agricultor = ctx.clientIdentity.getAttributeValue(
@@ -75,15 +69,16 @@ export default class LoteSemillasContrato extends Contract {
     // Contruimos el key del asset con los parámetros recibidos
     // Nota: El Key es una cadena única que identifica el asset en el WorldState.
     const key = ctx.stub.createCompositeKey("LoteSemillas", [
+      agricultor,
       lote,
       variedad,
       fechaCompra,
-      agricultor,
     ]);
 
     // Verificamos si el asset ya existe en el WorldState
     // Si el asset ya existe, lanzamos un error
-    const exists = await this.LoteSemillasExists(ctx, key);
+    const loteSemillasJSON = await ctx.stub.getState(key);
+    const exists = loteSemillasJSON.length > 0;
     if (exists) {
       throw new Error(`El asset ${key} ya exíste.`);
     }
@@ -111,43 +106,34 @@ export default class LoteSemillasContrato extends Contract {
   // Esta transacción actualiza el estado del asset LoteSemillas a "sembrado" y guarda las condiciones de siembra.
   @Transaction()
   @Returns("LoteSemillas")
-  public async SembrarLoteSemillas(
+  public async sembrarLoteSemillas(
     ctx: Context,
     lote: string,
     condicionesSiembra: ICondicionesSiembra
   ): Promise<LoteSemillas> {
-
     // Verifica que quien ejecuta la transacción es un agricultor
     this.verificarAgricultor(ctx);
+    const agricultor = ctx.clientIdentity.getAttributeValue(
+      "metamaskAddress"
+    ) as string;
 
-    // Obtener el iterador con el composite key parcial para validar que existe el LoteSemillas con el lote especificado
-    const iterator = await ctx.stub.getStateByPartialCompositeKey(
-      "loteSemillas",
-      [lote]
-    );
-    const result = await iterator.next();
-    // Si no hay resultados, significa que no existe un asset LoteSemillas con el lote especificado
-    // Cerramos el iterador y lanzamos un error
-    if (!result.value || !result.value.value) {
-      await iterator.close();
-      throw new Error(`El asset LoteSemillas con lote ${lote} no existe.`);
+    const { asset, key } = await this.obtenerLote(ctx, lote);
+    const compositeKey = key;
+    const loteSemillas = asset;
+    // Verificamos que el agricultor sea el dueño del lote
+    if (loteSemillas.agricultor !== agricultor) {
+      throw new Error(
+        `El agricultor ${agricultor} no es dueño del lote ${lote}.`
+      );
     }
-
-    // Parseamos el valor del asset
-    const loteSemillas = JSON.parse(
-      result.value.value.toString()
-    ) as LoteSemillas;
 
     // Validamos que aún esté en estado almacenado
     if (loteSemillas.estado !== "almacenado") {
-      await iterator.close();
       throw new Error(
         `El lote ${lote} ya fue sembrado o no está disponible para siembra.`
       );
     }
 
-    // Extraemos la composite key original del asset para hacer putState correctamente
-    const compositeKey = result.value.key;
 
     // Creamos el nuevo estado del asset
     const updatedLoteSemillas: LoteSemillas = {
@@ -162,43 +148,106 @@ export default class LoteSemillasContrato extends Contract {
       Buffer.from(stringify(sortKeysRecursive(updatedLoteSemillas)))
     );
 
-    await iterator.close();
     return updatedLoteSemillas;
   }
 
   // Transacción para leer un lote de semillas
+  // Esta transacción obtiene un asset LoteSemillas del WorldState usando el lote especificado.
   @Transaction()
   @Returns("string")
-  public async LeerLoteSemillas(ctx: Context, lote: string): Promise<LoteSemillas> {
-    // Obtener el iterador con el composite key parcial para validar que existe el LoteSemillas con el lote especificado
-    const iterator = await ctx.stub.getStateByPartialCompositeKey(
-      "loteSemillas",
-      [lote]
-    );
-    const result = await iterator.next();
-    // Si no hay resultados, significa que no existe un asset LoteSemillas con el lote especificado
-    // Cerramos el iterador y lanzamos un error
-    if (!result.value || !result.value.value) {
-      await iterator.close();
-      throw new Error(`El asset LoteSemillas con lote ${lote} no existe.`);
+  public async leerLoteSemillas(
+    ctx: Context,
+    agricultorAddress: string,
+    lote: string
+  ): Promise<{ asset: LoteSemillas; key: string }> {
+    // Verificar que el usuario que llama a la transacción es un agricultor o un admin
+    const role = ctx.clientIdentity.getAttributeValue("role");
+    const address = ctx.clientIdentity.getAttributeValue("metamaskAddress");
+    if (address !== agricultorAddress && role !== "admin") {
+      throw new Error(
+        "No tienes permisos para leer el lote de semillas de este agricultor. Solo el agricultor o un administrador pueden realizar esta acción."
+      );
     }
 
-    // Parseamos el valor del asset
-    const loteSemillas = JSON.parse(
-      result.value.value.toString()
-    ) as LoteSemillas;
+    const loteSemillas = this.obtenerLote(ctx, lote);
 
     return loteSemillas;
   }
-    // LoteSemillasExists revisa si un LoteSemillas con el ID especificado existe en el WorldState.
-  // Si el ID no comienza con "LoteSemillas", lanza un error.
-  @Transaction(false)
-  @Returns("boolean")
-  public async LoteSemillasExists(ctx: Context, id: string): Promise<boolean> {
-    if (id.split(":")[0] !== "LoteSemillas") {
-      throw new Error("El asset que buscas no es un LoteSemillas.");
+
+  @Transaction()
+  @Returns("any[]")
+  public async listarLotesDelAgricultor(
+    ctx: Context,
+    agricultorAddress: string,
+    variedad?: string
+  ): Promise<LoteSemillas[]> {
+    // Verificar que el usuario que llama a la transacción es un agricultor o un admin
+    const role = ctx.clientIdentity.getAttributeValue("role");
+    // Obtener la dirección del usuario desde el contexto
+    const address = ctx.clientIdentity.getAttributeValue("metamaskAddress");
+    if (!address) {
+      throw new Error(
+        "No se pudo obtener la dirección del usuario desde el contexto."
+      );
     }
-    const loteSemillasJSON = await ctx.stub.getState(id);
-    return loteSemillasJSON.length > 0;
+    if (address !== agricultorAddress && role !== "admin") {
+      throw new Error(
+        "No tienes permisos para listar los lotes de semillas de este agricultor. Solo el agricultor o un administrador pueden realizar esta acción."
+      );
+    }
+    // Obtener el iterador con el composite key parcial para listar los lotes del agricultor
+    // Si se especifica una variedad, solo se listarán los lotes de esa variedad
+    const resultados: any[] = [];
+    const iterator = await ctx.stub.getStateByPartialCompositeKey(
+      "LoteSemillas",
+      [address]
+    );
+
+    while (true) {
+      const res = await iterator.next();
+      if (res.value && res.value.value.toString()) {
+        // Parseamos el valor del asset LoteSemillas
+        // El valor es un Buffer, lo convertimos a string y luego a objeto JSON
+        const loteStr = res.value.value.toString();
+        const lote = JSON.parse(loteStr);
+        // Si no se especifica variedad o la variedad del lote coincide con la variedad especificada, lo agregamos a los resultados
+        // Esto permite filtrar los lotes por variedad si se especifica
+        if (!variedad || lote.variedad === variedad) {
+          resultados.push(lote);
+        }
+      }
+      // Si el iterador ha terminado, cerramos el iterador y salimos del bucle
+      if (res.done) {
+        await iterator.close();
+        break;
+      }
+    }
+
+    return resultados;
+  }
+
+  private async obtenerLote(
+    ctx: Context,
+    lote: string
+  ): Promise<{ asset: LoteSemillas; key: string }> {
+    const iterator = await ctx.stub.getStateByPartialCompositeKey(
+      "LoteSemillas",
+      []
+    );
+    while (true) {
+      const res = await iterator.next();
+      if (res.value && res.value.value) {
+        const asset = JSON.parse(res.value.value.toString()) as LoteSemillas;
+        if (asset.lote === lote) {
+          await iterator.close();
+          return { asset, key: res.value.key };
+        }
+      }
+      if (res.done) {
+        await iterator.close();
+        break;
+      }
+    }
+    throw new Error(`LoteSemillas con lote ${lote} no encontrado.`);
   }
 }

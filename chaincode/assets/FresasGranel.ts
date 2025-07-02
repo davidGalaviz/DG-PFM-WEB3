@@ -3,17 +3,17 @@ import { Object, Property } from "fabric-contract-api";
 @Object()
 export class FresasGranel {
   @Property()
-  public idLoteSemillas = "";
+  public idLoteSemillas:string = "";
   @Property()
-  public fechaCosecha = "";
+  public fechaCosecha:string = "";
   @Property()
-  public variedad = "";
+  public variedad:string = "";
   @Property()
-  public toneladas = 0;
+  public toneladas:number = 0;
   @Property()
-  public responsableCosecha = "";
+  public responsableCosecha:string = "";
   @Property()
-  public condicionesRecoleccion = "";
+  public condicionesRecoleccion:string = "";
   @Property()
-  public tempDuranteCosecha = 0;
+  public tempDuranteCosecha:number = 0;
 }

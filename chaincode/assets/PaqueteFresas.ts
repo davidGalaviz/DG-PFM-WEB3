@@ -14,17 +14,17 @@ export interface DatosEntregaPaqueteFresas {
 @Object()
 export class PaqueteFresas {
   @Property()
-  public idPaquete = "";
+  public idPaquete:string = "";
   @Property()
-  public idGranel = "";
+  public idGranel:string = "";
   @Property()
-  public fechaEmpaque = "";
+  public fechaEmpaque:string = "";
   @Property()
-  public propietario = "";
+  public propietario:string = "";
   @Property()
-  public tipoEmpaque = "";
+  public tipoEmpaque:string = "";
   @Property()
-  public centroEmpaque = "";
+  public centroEmpaque:string = "";
   /**
    * Datos acerca del transporte hacia el distribuidor.
    */

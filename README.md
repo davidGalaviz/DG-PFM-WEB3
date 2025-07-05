@@ -27,3 +27,9 @@ Algunas carpetas deben ubicarse en WSL y otras en el sistema de archivos de Wind
 /DG-PFM-WEB3
   /hlf-app          -> Aplicación next.js
 ```
+## ⬆️ Iniciar la red
+1. Posicionate en la carpeta **start-pfm**
+2. Ejecuta el script
+   ```
+   ./start-pfm.sh
+   ```

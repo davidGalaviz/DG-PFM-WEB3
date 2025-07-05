@@ -14,7 +14,7 @@ git clone https://github.com/davidGalaviz/DG-PFM-WEB3.git
 ```
 ### 2. Estructura esperada del proyecto
 Algunas carpetas deben ubicarse en WSL y otras en el sistema de archivos de Windows. A continuación, se detalla la distribución correcta:
-**Nota**: puede ser que funcione con todas las carpetas en WSL, pero no esta probrado
+**Nota**: puede ser que funcione con todas las carpetas en WSL, pero no está probado.
 
 📁 Dentro de WSL (Linux):
 ```
@@ -28,8 +28,22 @@ Algunas carpetas deben ubicarse en WSL y otras en el sistema de archivos de Wind
   /hlf-app          -> Aplicación next.js
 ```
 ## ⬆️ Iniciar la red
-1. Posicionate en la carpeta **start-pfm**
-2. Ejecuta el script
+1. Posiciónate en la carpeta **/DG-PFM-WEB3**  (dentro de WSL, donde está la subcarpeta start-pfm)
+2. Descargar el script de instalación para los fabric-samples
+3. Instalar fabric samples, binarios e imagenes
+   ```
+   curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh && chmod +x install-fabric.sh
+   chmod +x install-fabric.sh
+   ```
+5. Ejecuta el script para instalar los samples, binarios e imágenes:
+   ```
+   ./install-fabric.sh docker samples binary
+   ```
+7. Entra a la carpeta start-pfm:
+   ```
+   cd start-pfm
+   ```
+9. Ejecuta el script para levantar la red
    ```
    ./start-pfm.sh
    ```

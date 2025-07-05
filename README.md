@@ -1,13 +1,13 @@
 # 🍓 Trazabilidad Fresas WEB 3
 Sistema de trazabilidad de la cadena de suministro de fresas usando tecnología blockchain con Hyperledger Fabric, una aplicación web construida en Next.js, y contenedores Docker para la infraestructura. El objetivo es permitir registrar y consultar la trazabilidad de los productos desde su origen hasta el consumidor final.
 
-## ⚙️ Tecnologías Utilizadas
+## 🛠️ Tecnologías Utilizadas
 - Next.js – Framework de React
 - ⛓️ Hyperledger Fabric – Blockchain
 - 🐳 Docker – Contenedores y redes
 - 🐧 WSL2 (Windows Subsystem for Linux 2) – Entorno Linux sobre Windows
 
-## Instalación y Configuración
+## ⚙️ Instalación y Configuración
 Este proyecto se construyo en windows con WLS2.
 ### 1. Clonar el repositorio:
 ``` bash

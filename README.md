@@ -28,18 +28,19 @@ Algunas carpetas deben ubicarse en WSL y otras en el sistema de archivos de Wind
   /hlf-app          -> Aplicación next.js
 ```
 ## ⬆️ Iniciar la red
-1. Posiciónate en la carpeta **/DG-PFM-WEB3**  (dentro de WSL, donde está la subcarpeta start-pfm)
-2. Descargar el script de instalación para los fabric-samples
-3. Instalar fabric samples, binarios e imagenes
+1. Inicia Docker
+2. Posiciónate en la carpeta **/DG-PFM-WEB3**  (dentro de WSL, donde está la subcarpeta start-pfm)
+3. Descargar el script de instalación para los fabric-samples
+4. Instalar fabric samples, binarios e imagenes
    ```
    curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh && chmod +x install-fabric.sh
    chmod +x install-fabric.sh
    ```
-5. Ejecuta el script para instalar los samples, binarios e imágenes:
+5. Ejecuta el script para instalar los samples, binarios e imágenes
    ```
    ./install-fabric.sh docker samples binary
    ```
-7. Entra a la carpeta start-pfm:
+7. Entra a la carpeta **start-pfm:**
    ```
    cd start-pfm
    ```
@@ -47,3 +48,6 @@ Algunas carpetas deben ubicarse en WSL y otras en el sistema de archivos de Wind
    ```
    ./start-pfm.sh
    ```
+### Comprabación de que todo salío bien
+Al final debes ver algo como lo siguiente en docker:
+

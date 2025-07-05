@@ -40,11 +40,16 @@ Algunas carpetas deben ubicarse en WSL y otras en el sistema de archivos de Wind
    ```
    ./install-fabric.sh docker samples binary
    ```
+6. Cambia el Endorsment Policy en el script **deployCCAAS.sh**
+   Cambia la línea 18 del script por la siguiente:
+   ```
+   CC_END_POLICY="OR('Org1MSP.member')"
+   ```
 7. Entra a la carpeta **start-pfm:**
    ```
    cd start-pfm
    ```
-9. Ejecuta el script para levantar la red
+8. Ejecuta el script para levantar la red
    ```
    ./start-pfm.sh
    ```

@@ -74,6 +74,10 @@ Debido a que la búsqueda de usuarios se requiere por rol y por address de Metam
 - **PROPIETARIO: Búsqueda por propietario + variedad**
 
     Se logra buscando el *asset* `PropietarioPaqueteFresasVariedad` con la clave `"propietario/variedad"` y accediendo a su valor (arreglo de paquetes)
+  
+- **DISTRIBUIDOR: Búsqueda por cosecha**
+    
+    Esta búsqueda es necesaria para la compra al mayoreo (ya que se compra toda una cosecha), para hacer esta búsqueda utilizaremos claves derivadas nuevamente.
 
 - **MINORISTA PROPIETARIO: Búsqueda por propietario + paqueteID**
 
@@ -90,8 +94,29 @@ Debido a que la búsqueda de usuarios se requiere por rol y por address de Metam
 ***Nota:*** `paqueteID` es un identificador único para el *asset*.
 
 ```
-"paqueteFresas"/paqueteID/cosechaFresasKey
-```
+“paqueteFresasID”/paqueteID/cosechaFresasKey
+“paqueteFresas”/cosechaFresasKey/paqueteID
+``` 
+    
+### 🐾 **Requerimientos de trazabilidad:**
+
+- Encontrar la cosecha de fresas de la que proviene el paquete
+    
+    Esto se logra buscando la cosecha con el `cosechaFresasKey` especificado.
+    
+
+### 🛠️ Estructura final de la clave:
+
+***Nota**:* `paqueteID` es un identificador único para el *asset*.
+
+<aside>
+
+“paqueteFresasID”/paqueteID/cosechaFresasKey
+
+“paqueteFresas”/cosechaFresasKey/paqueteID
+
+</aside>
+
 
 ---
 

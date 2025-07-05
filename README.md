@@ -8,7 +8,6 @@ Sistema de trazabilidad de la cadena de suministro de fresas usando tecnología 
 - 🐧 WSL2 (Windows Subsystem for Linux 2) – Entorno Linux sobre Windows
 
 ## ⚙️ Instalación y Configuración
-Este proyecto se construyo en windows con WLS2.
 ### 1. Clonar el repositorio:
 ``` bash
 git clone https://github.com/davidGalaviz/DG-PFM-WEB3.git

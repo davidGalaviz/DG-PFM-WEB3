@@ -48,7 +48,15 @@ Algunas carpetas deben ubicarse en WSL y otras en el sistema de archivos de Wind
    ```
    cd start-pfm
    ```
-8. Ejecuta el script para levantar la red
+8. Añade permisos de ejecución al script start-pfm.sh
+   ```
+   chmod +x start-pfm.sh
+   ```
+9. Instala las dependencias del proyecto start-pfm
+   ```
+   npm install
+   ```
+10. Ejecuta el script para levantar la red
    ```
    ./start-pfm.sh
    ```

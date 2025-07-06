@@ -34,7 +34,6 @@ Algunas carpetas deben ubicarse en WSL y otras en el sistema de archivos de Wind
 4. Instalar fabric samples, binarios e imagenes
    ```
    curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh && chmod +x install-fabric.sh
-   chmod +x install-fabric.sh
    ```
 5. Ejecuta el script para instalar los samples, binarios e imágenes
    ```

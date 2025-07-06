@@ -4,9 +4,8 @@
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node src/index.ts",
     "watch": "tsc -w",
-    "start": "tsc && fabric-chaincode-node server --chaincode-address=%CHAINCODE_SERVER_ADDRESS% --chaincode-id=%CHAINCODE_ID%",
+    "start": "fabric-chaincode-node server --chaincode-address=$CHAINCODE_SERVER_ADDRESS --chaincode-id=$CHAINCODE_ID",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,7 +13,8 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "ts-node": "^10.9.2"
   },
   "dependencies": {
     "ethers": "^6.14.4",

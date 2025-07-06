@@ -1,159 +1,57 @@
-import { FileSystemWallet, X509WalletMixin } from "fabric-network";
-import FabricCAServices from "fabric-ca-client";
 import path from "path";
+import fs from "fs";
+import * as crypto from "crypto";
+import FabricCAServices from "fabric-ca-client";
+import { signers } from "@hyperledger/fabric-gateway";
 import { connectGateway } from "@/lib/gateway";
-import db from "@/lib/db";
 
-const walletPath = path.resolve(__dirname, "../wallet");
-const caURL = "https://localhost:7054"; // cambia según tu setup
+const caURL = "https://localhost:7054";
+const caName = "ca.org1.example.com";
+const mspId = "Org1MSP";
+const tlsCertPath = path.resolve(__dirname, "../../../fabric-samples/test-network/organizations/fabric-ca/org1/tls-cert.pem");
+export async function registrarUsuario(userId: string, metamaskAddress: string, rol: string, nombre: string) {
+  const tlsCert = fs.readFileSync(tlsCertPath);
+  const ca = new FabricCAServices(caURL, { trustedRoots: tlsCert, verify: false }, caName);
 
-export async function registrarIdentidadFabric(
-  identityLabel: string,
-  affiliation: string = "org1.department1",
-  rol: string,
-  metamaskAddress: string,
-  nombre: string
-) {
-  // Configuración del CA
-  const ca = new FabricCAServices(caURL);
-  // Configuración del wallet
-  // ❓ ¿Que retorna FileSystemWallet?
-  const wallet = new FileSystemWallet(walletPath);
+  const adminCert = fs.readFileSync("ruta/cert.pem").toString();
+  const adminKeyPem = crypto.createPrivateKey({ key: fs.readFileSync("ruta/priv_sk", 'utf8').toString() });
 
-  // Verifica si ya existe la identidad
-  const userExists = await wallet.exists(identityLabel);
-  if (userExists) {
-    console.log(`Identidad ${identityLabel} ya existe`);
-    return;
-  }
 
-  // Usa una identidad admin para registrar al nuevo usuario
-  const adminExists = await wallet.exists("admin");
-  if (!adminExists) throw new Error("Identidad admin no encontrada en wallet");
+  // 
+  const adminIdentity = {
+    credentials: {
+      certificate: adminCert,
+      privateKey: adminKeyPem,
+    },
+    mspId,
+    type: "X.509" as const,
+  };
 
-  const adminIdentity = await wallet.export("admin");
-  const provider = wallet.getProviderRegistry().getProvider(adminIdentity.type);
-  const adminUser = await provider.getUserContext(adminIdentity, "admin");
+  const adminSigner = signers.newPrivateKeySigner(
+    adminKeyPem
+  );
 
-  // 1. Registrar nuevo usuario en el CA
-  const secret = await ca.register(
+  const userSecret = await ca.register(
     {
-      affiliation,
-      enrollmentID: identityLabel,
+      affiliation: "",
+      enrollmentID: userId,
       role: "client",
-      attrs: [
-        { name: "rol", value: rol, ecert: true },
-        { name: "metamask", value: metamaskAddress, ecert: true },
-        { name: "nombre", value: nombre, ecert: true },
-      ],
+      attrs: [{ name: "role", value: rol, ecert: true }],
     },
     adminUser
   );
 
-  // 2. Inscribir al nuevo usuario
-  const enrollment = await ca.enroll({
-    enrollmentID: identityLabel,
-    enrollmentSecret: secret,
+  await ca.enroll({
+    enrollmentID: userId,
+    enrollmentSecret: userSecret,
   });
 
-  // 3. Importar identidad en el wallet
-  const userIdentity = X509WalletMixin.createIdentity(
-    "Org1MSP",
-    enrollment.certificate,
-    enrollment.key.toBytes()
-  );
-  await wallet.import(identityLabel, userIdentity);
-  console.log(`✅ Identidad ${identityLabel} registrada e importada`);
-}
-
-export async function getIdentityLabel(
-  metamaskAddress: string
-): Promise<string | null> {
-  const res = await db.query(
-    "SELECT identity_label FROM identity_map WHERE metamask_address = $1",
-    [metamaskAddress]
-  );
-  return res.rows[0]?.identity_label || null;
-}
-
-export async function registrarUsuario(
-  nombre: string,
-  metamaskAddress: string,
-  rol: string
-) {
-  const gateway = await connectGateway("admin", "Org1MSP");
+  // 2. Conexión con Fabric Gateway
+  const gateway = await connectGateway("admin", mspId);
   const network = gateway.getNetwork("mychannel");
-  const contract = network.getContract(
-    "fresas-traza",
-    "AdminContrato"
-  );
+  const contract = network.getContract("mi-chaincode");
 
-  const result = await contract.submitTransaction(
-    "registrarUsuario",
-    nombre,
-    metamaskAddress,
-    rol
-  );
-
-  // Guardar la relación en Postgres
-  await db.query(
-    `INSERT INTO identity_map (metamask_address, identity_label, rol, nombre)
-     VALUES ($1, $2, $3, $4)
-     ON CONFLICT (metamask_address) DO UPDATE SET identity_label = EXCLUDED.identity_label, rol = EXCLUDED.rol, nombre = EXCLUDED.nombre`,
-    [metamaskAddress, `user-${metamaskAddress}`, rol, nombre]
-  );
-
-  gateway.close();
-  return result.toString();
-}
-
-export async function eliminarUsuario(metamaskAddress: string) {
-  const gateway = await connectGateway("admin", "Org1MSP");
-  const network = gateway.getNetwork("mychannel");
-  const contract = network.getContract(
-    "fresas-traza",
-    "AdminContrato"
-  );
-
-  const result = await contract.submitTransaction(
-    "eliminarUsuario",
-    metamaskAddress
-  );
-  gateway.close();
-  return result.toString();
-}
-
-export async function leerUsuario(metamaskAddress: string) {
-  const identityLabel = await getIdentityLabel(metamaskAddress);
-  if (!identityLabel) throw new Error("Identidad no registrada");
-
-  const gateway = await connectGateway("admin", "Org1MSP");
-  const network = gateway.getNetwork("mychannel");
-  const contract = network.getContract(
-    "fresas-traza",
-    "AdminContrato"
-  );
-
-  const result = await contract.submitTransaction(
-    "leerUsuario",
-    metamaskAddress
-  );
-  gateway.close();
-  return JSON.parse(result.toString());
-}
-
-export async function listarUsuariosPorRol(rol: string, identityLabel: string) {
-  const gateway = await connectGateway(identityLabel, "Org1MSP");
-  const network = gateway.getNetwork("mychannel");
-  const contract = network.getContract(
-    "fresas-traza",
-    "AdminContrato"
-  );
-
-  const result = await contract.evaluateTransaction(
-    "listarUsuariosPorRol",
-    rol
-  );
-  gateway.close();
-  return JSON.parse(result.toString());
+  // 3. Ejecutar transacción en chaincode
+  await contract.submitTransaction("registrarUsuario", nombre, metamaskAddress, rol, userId);
+  console.log("✅ Transacción registrarUsuario ejecutada con éxito");
 }

@@ -18,7 +18,7 @@ import { Usuario, UsuarioAndKeys } from "../assets/Usuario";
   title: "AdminContrato",
   description: "Contrato para la gestión de usuarios usando claves derivadas",
 })
-export class ContratoAdmin extends Contract {
+export class AdminContrato extends Contract {
   // 🔨 Funciones auxiliares
   // Función para construir la clave principal
   private construirClavePrincipal(

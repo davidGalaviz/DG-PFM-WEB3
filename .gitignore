@@ -44,3 +44,6 @@ chaincode/dist/
 
 # Test coverage
 coverage/
+# FabricSamples
+fabric-samples/
+
